@@ -1,35 +1,39 @@
-from faker import Faker
-import json
-import concurrent.futures 
-import time
 
+import time
+from faker import Faker
+from pymongo import MongoClient, InsertOne,collection
+import pymongo 
+import json
+
+from requests import request
 
 fake = Faker()
-
-
+customer = []
+records = 10000
 def genrate_data(records):
-    customer = {}
+   
     for n in range(0, records):
-        customer[n] ={}
-        customer [n]['Name'] = fake.name()
-        customer[n]['Address']= fake.address()
-        customer[n]['Country'] = fake.country()
-        customer [n]['city']= fake.city()
-        customer [n]['IP']= fake.ipv4_private()
-    n=100
-    for i in range (1, n+1):
-        customer["name"]=f"#{i}" 
-        with open(f'{i}.json','w') as fp:
-            json.dump(customer, fp)
-        print("File has been created")
+        item ={'_id': n, 'name':fake.name(),'address':fake.address() , 'Country': fake.country(), 'city':fake.city(),'IP':fake.ipv4_private()}
+        
+        customer.append(item)
+    return customer
+    
+def write_data(document):
+    # write data to intake collection
+    
+   
+    uri = "mongodb://localhost:27017"
+
+    requesting =[] 
+
+    client = MongoClient(uri)
+    db = client.Raw_Data
+    collection = db.fake_user
+    db.collection.bulk_write(document)
 
 
-
-#import time
-nums = [1000]
 while True:
     
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(genrate_data,nums)
-        
-    time.sleep(60)
+    Data_save = genrate_data(records)
+    write_data(Data_save)
+    time.sleep(60)   
